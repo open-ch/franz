@@ -1,0 +1,26 @@
+#topics:
+#  - name: test1
+#    configs:
+#      - name: conf1
+#        value: val1
+#
+#  - name: test2
+
+---
+topics:
+  - name: test1
+    partitions: 1
+    replication: 1
+    configs:
+      - name: foo1
+        value: bar1
+      - name: foo2
+        value: bar2
+  - name: test2
+    partitions: 1
+    replication: 1
+    configs:
+      - name: foo1
+        value: bar1
+      - name: foo2
+        value: bar2
