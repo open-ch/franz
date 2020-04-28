@@ -26,7 +26,7 @@ func (f *Franz) GetAcls() (KafkaACLs, error) {
 }
 
 // setAcls is the command run by kafka acls setAcls
-func (f *Franz) SetACLs(kafkaACLs KafkaACLs, forceDeletion bool) error {
+func (f *Franz) SetACLs(kafkaACLs KafkaACLs) error {
 	clusterAdmin, err := f.getClusterAdmin()
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func (f *Franz) SetACLs(kafkaACLs KafkaACLs, forceDeletion bool) error {
 		return errors.New("ACLs validation failed: file contains duplicate ACLs")
 	}
 
-	err = clusterAdmin.SetKafkaAcls(kafkaACLs, forceDeletion)
+	err = clusterAdmin.SetKafkaAcls(kafkaACLs)
 	if err != nil {
 		return errors.Wrap(err, "failed to set ACLs")
 	}
@@ -87,7 +87,7 @@ func (c *ClusterAdmin) getAcls() ([]sarama.ResourceAcls, error) {
 }
 
 // SetKafkaAcls takes a list of resource ACLs and does the appropriate actions (create, delete) to install these ACLs in Kafka
-func (c *ClusterAdmin) SetKafkaAcls(kafkaAcls KafkaACLs, forceDeletion bool) error {
+func (c *ClusterAdmin) SetKafkaAcls(kafkaAcls KafkaACLs) error {
 	resAclsExisting, err := c.getAcls()
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve the existing ACLs")
@@ -96,12 +96,10 @@ func (c *ClusterAdmin) SetKafkaAcls(kafkaAcls KafkaACLs, forceDeletion bool) err
 	resAclsNew := kafkaToSaramaResources(kafkaAcls)
 	toCreate, toDelete := diffResourcesACLs(resAclsNew, resAclsExisting)
 
-	if len(toDelete) > 0 && forceDeletion {
+	if len(toDelete) > 0 {
 		if err := c.deleteAcls(toDelete); err != nil {
 			return errors.Wrap(err, "failed to delete the ACLs")
 		}
-	} else if len(toDelete) > 0 {
-		c.log.Infof("Will not delete %d ACLs marked for deletion, use --force to force deletion.", len(toDelete))
 	}
 
 	if len(toCreate) > 0 {

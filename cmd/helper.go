@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
-	"SCRUBBED-URL
-	"SCRUBBED-URL
+	"github.com/open-ch/franz/pkg/franz"
+	"github.com/open-ch/franz/pkg/list"
 )
 
 func getFranzConfig() franz.Config {

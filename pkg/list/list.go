@@ -86,6 +86,14 @@ func toString(val reflect.Value) string {
 	switch val.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return strconv.FormatInt(val.Int(), 10)
+
+	case reflect.Bool:
+		if val.Bool() {
+			return "true"
+		}
+
+		return "false"
+
 	case reflect.Slice:
 		var elems []string
 		for i := 0; i < val.Len(); i++ {
@@ -93,6 +101,7 @@ func toString(val reflect.Value) string {
 		}
 
 		return strings.Join(elems, ", ")
+
 	default:
 		return val.String()
 	}

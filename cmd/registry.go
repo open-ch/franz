@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
-	"SCRUBBED-URL
+	"github.com/open-ch/franz/pkg/franz"
 )
 
 func init() {

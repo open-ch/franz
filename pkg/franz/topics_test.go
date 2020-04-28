@@ -40,11 +40,6 @@ func TestDiffTopicsConfig(t *testing.T) {
 	require.Equal(t, *toAlter[0].Configs["log.retention.ms"], "200")
 }
 
-func TestTopicValidity(t *testing.T) {
-	require.NoError(t, validateTopics([]Topic{{Name: "valid"}}))
-	require.Error(t, validateTopics([]Topic{{Name: "_invalid"}}))
-}
-
 func TestDiffTopicsConfigDefaultConfig(t *testing.T) {
 	existingTopics := []Topic{{
 		Name:              "test",

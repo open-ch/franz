@@ -1,6 +1,6 @@
 package main
 
-import "SCRUBBED-URL
+import "github.com/open-ch/franz/cmd"
 
 func main() {
 	cmd.Execute()

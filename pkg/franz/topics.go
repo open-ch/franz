@@ -1,8 +1,6 @@
 package franz
 
 import (
-	"strings"
-
 	"github.com/Shopify/sarama"
 	"github.com/pkg/errors"
 )
@@ -26,35 +24,11 @@ type AlteredConfigs struct {
 	Configs   map[string]*string
 }
 
-func (f *Franz) GetTopicsExisting(includeInternal bool) ([]Topic, error) {
-	clusterAdmin, err := f.getClusterAdmin()
-	if err != nil {
-		return nil, errors.Wrap(err, "creation of sarama cluster admin failed")
-	}
-
-	f.log.Info("retrieving existing topics")
-	topics, err := clusterAdmin.GetTopicsExisting(f.client, includeInternal)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to retrieve existing topics")
-	}
-
-	return topics, nil
-}
-
 func (f *Franz) GetTopicsDiff(topics []Topic) (TopicDiff, error) {
-	clusterAdmin, err := f.getClusterAdmin()
-	if err != nil {
-		return TopicDiff{}, errors.Wrap(err, "cluster admin creation failed")
-	}
-
 	f.log.Infof("getting existing topics...")
-	topicsExisting, err := clusterAdmin.GetTopicsExisting(f.client, false)
+	topicsExisting, err := f.GetTopicsExisting(false)
 	if err != nil {
 		return TopicDiff{}, errors.Wrap(err, "failed to get existing topics")
-	}
-
-	if err := validateTopics(topics); err != nil {
-		return TopicDiff{}, err
 	}
 
 	toCreate, toDelete, toAlter := diffTopics(topics, topicsExisting)
@@ -82,50 +56,41 @@ func (f *Franz) SetTopics(diff TopicDiff) error {
 
 // GetTopicsExisting retrieves the topic names and configuration parameters
 // The configuration parameters are filtered - only the non-default are returned
-func (c *ClusterAdmin) GetTopicsExisting(client sarama.Client, includeInternal bool) ([]Topic, error) {
-	topicNames, err := client.Topics()
+func (f *Franz) GetTopicsExisting(includeInternal bool) ([]Topic, error) {
+	topicNames, err := f.client.Topics()
+	if err != nil {
+		return nil, err
+	}
+
+	topicsMetadata, err := f.admin.DescribeTopics(topicNames)
 	if err != nil {
 		return nil, err
 	}
 
 	var topics []Topic
-	for _, topicName := range topicNames {
-		if !includeInternal && isInternal(topicName) {
+	for _, topic := range topicsMetadata {
+		if !includeInternal && topic.IsInternal {
 			continue
 		}
 
-		configs, err := c.getTopicConfig(topicName)
+		configs, err := f.getTopicConfig(topic.Name)
 		if err != nil {
 			return nil, err
 		}
-		partitionsCount, replicationFactor, err := getPartitionsAndReplicationFactor(client, topicName)
-		if err != nil {
-			return nil, err
-		}
+
 		nonDefaultConfigs := filterNonDefault(configs)
 
-		topics = append(topics, Topic{
-			Name:              topicName,
+		topicConverted := Topic{
+			Name:              topic.Name,
 			Configs:           nonDefaultConfigs,
-			NumPartitions:     partitionsCount,
-			ReplicationFactor: replicationFactor,
-		})
+			NumPartitions:     len(topic.Partitions),
+			ReplicationFactor: len(topic.Partitions[0].Replicas),
+		}
+
+		topics = append(topics, topicConverted)
 	}
 
 	return topics, nil
-}
-
-func getPartitionsAndReplicationFactor(client sarama.Client, topicName string) (numPartitions int, numReplicas int, err error) {
-	partitions, err := client.Partitions(topicName)
-	if err != nil {
-		return -1, -1, err
-	}
-	// assume that all partitions have the same replication factor
-	replicas, err := client.Replicas(topicName, partitions[0])
-	if err != nil {
-		return -1, -1, err
-	}
-	return len(partitions), len(replicas), nil
 }
 
 func filterNonDefault(configs []sarama.ConfigEntry) (filtered []sarama.ConfigEntry) {
@@ -137,13 +102,13 @@ func filterNonDefault(configs []sarama.ConfigEntry) (filtered []sarama.ConfigEnt
 	return filtered
 }
 
-func (c *ClusterAdmin) getTopicConfig(topicName string) ([]sarama.ConfigEntry, error) {
+func (f *Franz) getTopicConfig(topicName string) ([]sarama.ConfigEntry, error) {
 	searchConfig := sarama.ConfigResource{
 		Type: sarama.TopicResource,
 		Name: topicName,
 	}
 
-	configEntry, err := c.client.DescribeConfig(searchConfig)
+	configEntry, err := f.admin.DescribeConfig(searchConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get topic configuration values")
 	}
@@ -189,6 +154,9 @@ func (c *ClusterAdmin) SetKafkaTopics(diff TopicDiff) error {
 
 // diffTopics goes through the new and existing topics and figures out which topics have to be created and which need to be altered
 func diffTopics(topicsNew, topicsExisting []Topic) (toCreate, toDelete []Topic, toAlter []AlteredConfigs) {
+	// make sure the slices are at least empty slices and never nil
+	toCreate, toDelete, toAlter = []Topic{}, []Topic{}, []AlteredConfigs{}
+
 	// initially all given topics are candidates to be created
 	toCreate = append(toCreate, topicsNew...)
 	// initially all existing topics are candidates to be removed
@@ -206,10 +174,6 @@ func diffTopics(topicsNew, topicsExisting []Topic) (toCreate, toDelete []Topic, 
 			toCreate = delTopicFromArray(topic, toCreate)
 			toDelete = delTopicFromArray(topic, toDelete)
 		}
-	}
-
-	if toAlter == nil {
-		toAlter = []AlteredConfigs{}
 	}
 
 	return toCreate, toDelete, toAlter
@@ -272,18 +236,4 @@ func containsTopic(topics []Topic, topic Topic) (exists bool, index int) {
 		}
 	}
 	return false, -1
-}
-
-func validateTopics(topics []Topic) error {
-	for _, topic := range topics {
-		if isInternal(topic.Name) {
-			return errors.Errorf(`topic name "%s" must not contain "_" as this is reserved for internal names`, topic.Name)
-		}
-	}
-
-	return nil
-}
-
-func isInternal(topicName string) bool {
-	return strings.HasPrefix(topicName, "_")
 }

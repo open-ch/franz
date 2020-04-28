@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
-	"SCRUBBED-URL
+	"github.com/open-ch/franz/pkg/franz"
 )
 
 func init() {
@@ -25,7 +25,9 @@ func init() {
 		Short: "Sets Kafka topics from config files",
 		Long: `Sets Kafka topics from a config file
 
-By default, only the diff will be printed. To actually perform the changes use the --apply flag.`,
+By default, only the diff will be printed. To actually perform the changes use the --apply flag.
+Note that internal topics will not be modified.
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var topicWrapper TopicWrapper
 			if err := decode(topicsFile, &topicWrapper); err != nil {
@@ -50,7 +52,11 @@ By default, only the diff will be printed. To actually perform the changes use t
 	var listTopicsCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List Kafka topics",
-		Long:  "List Kafka topics",
+		Long: `List Kafka topics
+
+By default, internal topics will not be returned.
+This can be overridden by specifying the --internal flag.
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return execute(func(_ context.Context, f *franz.Franz) (s string, err error) {
 				topics, err := f.GetTopicsExisting(includeInternal)

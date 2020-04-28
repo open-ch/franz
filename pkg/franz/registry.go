@@ -13,7 +13,7 @@ const timeout = 5 * time.Second
 
 type Schema schemaregistry.Schema
 
-type registry interface {
+type Registry interface {
 	Subjects() ([]string, error)
 	SchemaByID(uint32) (string, error)
 	SchemaBySubject(string) (Schema, error)

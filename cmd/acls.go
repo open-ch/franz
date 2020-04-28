@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
-	"SCRUBBED-URL
+	"github.com/open-ch/franz/pkg/franz"
 )
 
 func init() {
 	var (
-		aclsFile      string
-		forceDeletion bool
-		apply         bool
+		aclsFile string
+		apply    bool
 	)
 
 	// aclsCmd represents the acls command
@@ -42,7 +41,7 @@ func init() {
 					return format(changes, false)
 				}
 
-				return "", f.SetACLs(kafkaACLs, forceDeletion)
+				return "", f.SetACLs(kafkaACLs)
 			})
 		},
 	}
@@ -66,7 +65,6 @@ func init() {
 
 	// Flags
 	setACLCmd.Flags().StringVarP(&aclsFile, "file", "f", "", "File containing the acls to set")
-	setACLCmd.Flags().BoolVar(&forceDeletion, "force", false, "Force deletion of ACLs that are not found on the config file")
 	setACLCmd.Flags().BoolVarP(&apply, "apply", "a", false, "Apply the changes")
 
 	RootCmd.AddCommand(aclsCmd)

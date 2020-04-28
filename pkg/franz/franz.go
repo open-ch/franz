@@ -30,10 +30,11 @@ type Message struct {
 type Franz struct {
 	brokers      []string
 	client       sarama.Client
+	admin        sarama.ClusterAdmin
 	log          logrus.FieldLogger
-	registry     registry
+	registry     Registry
 	codec        *avroCodec
-	clusterAdmin *ClusterAdmin
+	clusterAdmin *ClusterAdmin // use Franz.admin directly instead of clusterAdmin
 }
 
 func New(c Config, verbose bool) (*Franz, error) {
@@ -56,7 +57,12 @@ func New(c Config, verbose bool) (*Franz, error) {
 		return nil, err
 	}
 
-	registry := registry(nilRegistry{})
+	admin, err := sarama.NewClusterAdminFromClient(client)
+	if err != nil {
+		return nil, err
+	}
+
+	registry := Registry(nilRegistry{})
 	if c.SchemaRegistry != "" {
 		registry, err = newRegistry(c, log)
 		if err != nil {
@@ -68,6 +74,7 @@ func New(c Config, verbose bool) (*Franz, error) {
 		brokers:  c.Brokers,
 		log:      log,
 		client:   client,
+		admin:    admin,
 		registry: registry,
 		codec:    newAvroCodec(registry),
 	}, nil
@@ -79,13 +86,15 @@ func (f *Franz) Close() error {
 		f.clusterAdmin = nil
 	}
 
+	f.admin.Close()
+
 	err := f.client.Close()
 	f.client = nil
 
 	return err
 }
 
-func (f *Franz) Registry() registry {
+func (f *Franz) Registry() Registry {
 	return f.registry
 }
 

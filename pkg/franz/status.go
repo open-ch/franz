@@ -1,6 +1,8 @@
 package franz
 
-import "sort"
+import (
+	"sort"
+)
 
 type Status struct {
 	Topic     string
@@ -8,6 +10,7 @@ type Status struct {
 	Leader    int32
 	Replicas  []int32
 	ISR       []int32
+	Internal  bool
 }
 
 func (f *Franz) Status() ([]Status, error) {
@@ -17,13 +20,18 @@ func (f *Franz) Status() ([]Status, error) {
 		return nil, err
 	}
 
-	for _, topic := range topics {
-		err := f.client.RefreshMetadata(topic)
+	topicMetadata, err := f.admin.DescribeTopics(topics)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, topic := range topicMetadata {
+		err := f.client.RefreshMetadata(topic.Name)
 		if err != nil {
 			return nil, err
 		}
 
-		partitions, err := f.client.Partitions(topic)
+		partitions, err := f.client.Partitions(topic.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -32,28 +40,14 @@ func (f *Franz) Status() ([]Status, error) {
 			return partitions[i] < partitions[j]
 		})
 
-		for _, partition := range partitions {
-			isr, err := f.client.InSyncReplicas(topic, partition)
-			if err != nil {
-				return nil, err
-			}
-
-			replicas, err := f.client.Replicas(topic, partition)
-			if err != nil {
-				return nil, err
-			}
-
-			leader, err := f.client.Leader(topic, partition)
-			if err != nil {
-				return nil, err
-			}
-
+		for _, partition := range topic.Partitions {
 			states = append(states, Status{
-				Topic:     topic,
-				Partition: partition,
-				Leader:    leader.ID(),
-				Replicas:  replicas,
-				ISR:       isr,
+				Topic:     topic.Name,
+				Partition: partition.ID,
+				Leader:    partition.Leader,
+				Replicas:  partition.Replicas,
+				ISR:       partition.Isr,
+				Internal:  topic.IsInternal,
 			})
 		}
 	}

@@ -9,12 +9,12 @@ import (
 
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"SCRUBBED-URL
-	"SCRUBBED-URL
+	"github.com/open-ch/franz/pkg/franz"
+	"github.com/open-ch/franz/pkg/list"
 )
 
 const (
-	defaultMessageCount = 25
+	defaultMessageCount = 5
 )
 
 func init() {
@@ -55,6 +55,7 @@ You may consume from a kafka topic with arbitrary offsets.`,
 						Topic:      topic,
 						From:       from,
 						To:         to,
+						Count:      count,
 						Partitions: convertSliceIntToInt32(partitions),
 						Decode:     decode,
 					}
@@ -109,8 +110,8 @@ You may consume from a kafka topic with arbitrary offsets.`,
 
 	monitorCmd.Flags().Int64VarP(&count, "number", "n", defaultMessageCount, "Consumes the n last messages for each partition")
 	monitorCmd.Flags().IntSliceVarP(&partitions, "partitions", "p", nil, "The partitions to consume (comma-separated), all partitions will be used if not set")
-	monitorCmd.Flags().DurationVarP(&duration, "duration", "d", 0, "Time-frame after \"from\", only effective with -s")
-	monitorCmd.Flags().StringVarP(&start, "start", "s", "", "Starting time, disables -f and -n")
+	monitorCmd.Flags().DurationVarP(&duration, "duration", "d", 0, "Time-frame after \"from\", only effective with -s, disables -n")
+	monitorCmd.Flags().StringVarP(&start, "start", "s", "", "Starting time, disables -f")
 	monitorCmd.Flags().BoolVarP(&follow, "follow", "f", false, "Consume future messages when they arrive")
 	monitorCmd.Flags().BoolVar(&decode, "decode", false, "Decodes the message according to the schema defined in the schema registry")
 }

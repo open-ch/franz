@@ -32,7 +32,8 @@ type MonitorRequest struct {
 
 type HistoryRequest struct {
 	Topic      string
-	From, To   time.Time
+	From, To   time.Time // To takes precedence over Count
+	Count      int64
 	Partitions []int32
 	Decode     bool
 }
@@ -133,14 +134,31 @@ func (f *Franz) HistoryEntries(req HistoryRequest) ([]Message, error) {
 			continue
 		}
 
+		// endOffset refers to the message that will be produced next,
+		// i.e. we stop at the message received one before.
 		endOffset := sarama.OffsetNewest
 		if !req.To.Equal(time.Time{}) {
+			// Use absolute time
+
 			offset, err := f.client.GetOffset(req.Topic, partition, req.To.UnixNano()/int64(time.Millisecond))
 			if err != nil {
 				return nil, err
 			}
 
 			endOffset = offset
+		} else if req.Count > 0 {
+			// Use offset count
+
+			endOffset = startOffset + req.Count
+
+			latestOffset, err := f.client.GetOffset(req.Topic, partition, sarama.OffsetNewest)
+			if err != nil {
+				return nil, err
+			}
+
+			if endOffset > latestOffset {
+				endOffset = latestOffset
+			}
 		}
 
 		if endOffset == sarama.OffsetNewest {
@@ -149,7 +167,7 @@ func (f *Franz) HistoryEntries(req HistoryRequest) ([]Message, error) {
 				return nil, err
 			}
 
-			endOffset = offset - 1 // offset refers to the next message which does not exist yet
+			endOffset = offset
 		}
 
 		partitionConsumer, err := consumer.ConsumePartition(req.Topic, partition, startOffset)
@@ -178,7 +196,7 @@ func (f *Franz) HistoryEntries(req HistoryRequest) ([]Message, error) {
 
 			messages = append(messages, messageTransformed)
 
-			if message.Offset == endOffset {
+			if (message.Offset + 1) == endOffset {
 				if err := partitionConsumer.Close(); err != nil {
 					f.log.Error(err)
 				}
