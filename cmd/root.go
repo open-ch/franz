@@ -80,6 +80,7 @@ func initConfig() {
 	if home, err := os.UserHomeDir(); err == nil {
 		viper.SetConfigName("config")
 		viper.AddConfigPath(home + "/.config/franz")
+		viper.AddConfigPath("/opt/franz/etc")
 	}
 
 	// if the config file is passed explicitly, use this instead of the default
