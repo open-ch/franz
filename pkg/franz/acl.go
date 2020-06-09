@@ -259,7 +259,7 @@ type KafkaACLs struct {
 // TODO: maybe name it ResourceACLs to align it with sarama
 type ACLs struct {
 	Version     int    `json:"version" yaml:"-"`
-	Name        string `json:"-" yaml:"name"`
+	Name        string `json:"name" yaml:"name"`
 	PatternType string `json:"pattern_type" yaml:"resourcePatternType,omitempty"` // optional, exists only for kafka version 2.1 and above
 	ACL         []ACL  `json:"acls" yaml:"acl"`
 }
