@@ -1,0 +1,14 @@
+---
+
+brokers:
+  - host:port
+  - host:port
+
+tls:
+  key: path_to_key.pem
+  cert: path_to_cert.pem
+  caCert: path_to_chain.pem
+
+registry: host:port
+
+kafka_version: 2.1.1

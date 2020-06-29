@@ -19,10 +19,10 @@ const (
 )
 
 var (
-	cfgFile     string
-	verbose     bool
-	formatTable bool
-	formatYAML  bool
+	cfgFile       string
+	verbose       bool
+	formatAsTable bool
+	formatAsYAML  bool
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -31,8 +31,8 @@ var RootCmd = &cobra.Command{
 	Short: "Your Swiss-Army Knife tool for interacting with Kafka.",
 	Long: `Your Swiss-Army Knife tool for interacting with Kafka.
 
-franz provides you various helper tools to work and debug kafka.
-Monitoring of topics, reassigning partitions and creating topics.`,
+franz provides you various helper tools to work with and debug Kafka
+such as consuming or producing messages and managing topics or ACLs.`,
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
@@ -63,8 +63,8 @@ func init() {
 	pf.StringVar(&certFile, "tls.cert", "", "X509 cert file in PEM encoding")
 	pf.StringVar(&caFile, "tls.caCert", "", "X509 Root CA file in PEM encoding")
 	pf.BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
-	pf.BoolVarP(&formatTable, "table", "t", false, "Format output as table (if possible)")
-	pf.BoolVarP(&formatYAML, "yaml", "y", false, "Format output as YAML (if possible)")
+	pf.BoolVarP(&formatAsTable, "table", "t", false, "Format output as table (if possible)")
+	pf.BoolVarP(&formatAsYAML, "yaml", "y", false, "Format output as YAML (if possible)")
 
 	_ = viper.BindPFlag("brokers", pf.Lookup("brokers"))
 	_ = viper.BindPFlag("registry", pf.Lookup("registry"))

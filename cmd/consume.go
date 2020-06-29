@@ -7,10 +7,10 @@ import (
 	"io"
 	"time"
 
+	"github.com/open-ch/franz/pkg/franz"
+
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"github.com/open-ch/franz/pkg/franz"
-	"github.com/open-ch/franz/pkg/list"
 )
 
 const (
@@ -95,7 +95,7 @@ You may consume from a kafka topic with arbitrary offsets.`,
 						return "", err
 					}
 
-					out, err := list.FormatJSON(msg)
+					out, err := formatJSON(msg)
 					if err != nil {
 						return "", err
 					}

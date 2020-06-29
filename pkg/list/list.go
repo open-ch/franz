@@ -1,35 +1,25 @@
+// Package list provides a utility function to quickly print a table based on the
+// element fields of a slice. This package is currently used for franz - while it
+// can, in theory, be used for other packages, there are still various edge cases
+// that should be taken care of, such as passing in something different than
+// a slice or a slice of interface{}.
 package list
 
 import (
-	"encoding/json"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"gopkg.in/yaml.v2"
 )
 
 const tagName = "header"
 
-func FormatJSON(entry interface{}) (string, error) {
-	out, err := json.MarshalIndent(entry, "", "  ")
-	if err != nil {
-		return "", nil
-	}
-
-	return string(out), nil
-}
-
-func FormatYAML(entry interface{}) (string, error) {
-	out, err := yaml.Marshal(entry)
-	if err != nil {
-		return "", nil
-	}
-
-	return string(out), nil
-}
-
+// FormatTable takes a slice with a distinct type as argument and prints it as a table,
+// one row for for each entry in the slice. The columns are based on the statically declared
+// element type of the slice, so note that passing in e.g. []interface{} does not make much sense.
+// By default, the field name is taken as the column name. This can be overridden by setting a tag
+// like so: `header:"New Column Name"`.
 func FormatTable(entries interface{}, caption string) (string, error) {
 	var builder strings.Builder
 	table := tablewriter.NewWriter(&builder)

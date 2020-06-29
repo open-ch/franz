@@ -1,6 +1,7 @@
 package list
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,4 +29,22 @@ func Test_getRows(t *testing.T) {
 		{"1", "Pumpkin", "Pie"},
 		{"2", "Chocolate", "Cake"},
 	}, out)
+}
+
+func Test_FormatTable(t *testing.T) {
+	in := []mockEntry{
+		{1, "Pumpkin", "Pie"},
+		{2, "Chocolate", "Cake"},
+	}
+	out, err := FormatTable(in, "")
+	expected := strings.TrimPrefix(`
++----+-----------+---------+
+| ID |   TITLE   | MESSAGE |
++----+-----------+---------+
+| 1  | Pumpkin   | Pie     |
+| 2  | Chocolate | Cake    |
++----+-----------+---------+
+`, "\n")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, out)
 }
