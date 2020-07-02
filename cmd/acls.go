@@ -9,8 +9,9 @@ import (
 
 func init() {
 	var (
-		aclsFile string
-		apply    bool
+		aclsFile        string
+		apply           bool
+		includeDeletion bool
 	)
 
 	// aclsCmd represents the acls command
@@ -24,24 +25,34 @@ func init() {
 	var setACLCmd = &cobra.Command{
 		Use:   "set",
 		Short: "Sets Kafka ACLs from Config Files",
-		Long:  `Sets Kafka ACLs from Magic Config Files`,
+		Long:  `Sets Kafka ACLs from Config Files.
+
+Note that by default only a dry run will be made, no action is taken. To apply the changes, specify --apply.
+Furthermore, by default no ACLs will be deleted. To override this, specify --include-deletion. Once again,
+in the dry run mode the deleted ACLs will only be displayed but not deleted, --apply is required to actually
+apply the changes.
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var kafkaACLs franz.KafkaACLs
-			if err := decode(aclsFile, &kafkaACLs); err != nil {
-				return err
-			}
-
 			return execute(func(_ context.Context, f *franz.Franz) (s string, err error) {
-				if !apply {
-					changes, err := f.SetACLsDryRun(kafkaACLs)
-					if err != nil {
-						return "", err
-					}
-
-					return format(changes, false)
+				var kafkaACLs franz.KafkaACLs
+				if err := decode(aclsFile, &kafkaACLs); err != nil {
+					return "", err
 				}
 
-				return "", f.SetACLs(kafkaACLs)
+				diff, err := f.GetACLsDiff(kafkaACLs)
+				if err != nil {
+					return "", err
+				}
+
+				if !includeDeletion {
+					diff.ToDelete = nil
+				}
+
+				if !apply {
+					return format(diff.Transform(), false)
+				}
+
+				return "", f.SetACLs(diff)
 			})
 		},
 	}
@@ -66,6 +77,7 @@ func init() {
 	// Flags
 	setACLCmd.Flags().StringVarP(&aclsFile, "file", "f", "", "File containing the acls to set")
 	setACLCmd.Flags().BoolVarP(&apply, "apply", "a", false, "Apply the changes")
+	setACLCmd.Flags().BoolVarP(&includeDeletion, "include-deletion", "d", false, "Remove ACLs that should be removed")
 
 	RootCmd.AddCommand(aclsCmd)
 	aclsCmd.AddCommand(setACLCmd)

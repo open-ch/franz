@@ -11,6 +11,7 @@ func init() {
 	var (
 		topicsFile      string
 		apply           bool
+		includeDeletion bool
 		includeInternal bool
 	)
 
@@ -25,7 +26,10 @@ func init() {
 		Short: "Sets Kafka topics from config files",
 		Long: `Sets Kafka topics from a config file
 
-By default, only the diff will be printed. To actually perform the changes use the --apply flag.
+Note that by default only a dry run will be made, no action is taken. To apply the changes, specify --apply.
+Furthermore, by default no topics will be deleted. To override this, specify --include-deletion. Once again,
+in the dry run mode the deleted topics will only be displayed but not deleted, --apply is required to actually
+apply the changes.
 Note that internal topics will not be modified.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -38,6 +42,10 @@ Note that internal topics will not be modified.
 				diff, err := f.GetTopicsDiff(topicWrapper.Topics)
 				if err != nil {
 					return "", err
+				}
+
+				if !includeDeletion {
+					diff.ToDelete = nil
 				}
 
 				if !apply {
@@ -71,6 +79,7 @@ This can be overridden by specifying the --internal flag.
 
 	setTopicsCmd.Flags().StringVarP(&topicsFile, "file", "f", "", "File containing the topics in YAML format to set")
 	setTopicsCmd.Flags().BoolVarP(&apply, "apply", "a", false, "Apply the changes")
+	setTopicsCmd.Flags().BoolVarP(&includeDeletion, "include-deletion", "d", false, "Remove topics that should be removed")
 	listTopicsCmd.Flags().BoolVarP(&includeInternal, "internal", "i", false, "Also output internal topics")
 
 	RootCmd.AddCommand(topicsCmd)

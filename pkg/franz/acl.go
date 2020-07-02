@@ -26,17 +26,13 @@ func (f *Franz) GetAcls() (KafkaACLs, error) {
 }
 
 // setAcls is the command run by kafka acls setAcls
-func (f *Franz) SetACLs(kafkaACLs KafkaACLs) error {
+func (f *Franz) SetACLs(diff ACLDiff) error {
 	clusterAdmin, err := f.getClusterAdmin()
 	if err != nil {
 		return err
 	}
 
-	if !ValidateACLs(kafkaACLs) {
-		return errors.New("ACLs validation failed: file contains duplicate ACLs")
-	}
-
-	err = clusterAdmin.SetKafkaAcls(kafkaACLs)
+	err = clusterAdmin.SetKafkaAcls(diff)
 	if err != nil {
 		return errors.Wrap(err, "failed to set ACLs")
 	}
@@ -44,7 +40,8 @@ func (f *Franz) SetACLs(kafkaACLs KafkaACLs) error {
 	return nil
 }
 
-func (f *Franz) SetACLsDryRun(kafkaACLs KafkaACLs) (ACLDiff, error) {
+// GetACLsDiff returns a diff between the passed in ACLs and the current configured ACLs
+func (f *Franz) GetACLsDiff(kafkaACLs KafkaACLs) (ACLDiff, error) {
 	clusterAdmin, err := f.getClusterAdmin()
 	if err != nil {
 		return ACLDiff{}, err
@@ -54,10 +51,11 @@ func (f *Franz) SetACLsDryRun(kafkaACLs KafkaACLs) (ACLDiff, error) {
 		return ACLDiff{}, errors.New("ACLs validation failed: file contains duplicate ACLs")
 	}
 
-	return clusterAdmin.SetKafkaACLsDryRun(kafkaACLs)
+	return clusterAdmin.GetACLsDiff(kafkaACLs)
 
 }
 
+// GetTransformedAcls returns the current ACL configuration in franz native form
 func (c *ClusterAdmin) GetTransformedAcls() (KafkaACLs, error) {
 	acls, err := c.getAcls()
 	if err != nil {
@@ -87,14 +85,9 @@ func (c *ClusterAdmin) getAcls() ([]sarama.ResourceAcls, error) {
 }
 
 // SetKafkaAcls takes a list of resource ACLs and does the appropriate actions (create, delete) to install these ACLs in Kafka
-func (c *ClusterAdmin) SetKafkaAcls(kafkaAcls KafkaACLs) error {
-	resAclsExisting, err := c.getAcls()
-	if err != nil {
-		return errors.Wrap(err, "failed to retrieve the existing ACLs")
-	}
-
-	resAclsNew := kafkaToSaramaResources(kafkaAcls)
-	toCreate, toDelete := diffResourcesACLs(resAclsNew, resAclsExisting)
+func (c *ClusterAdmin) SetKafkaAcls(diff ACLDiff) error {
+	toCreate := diff.ToCreate
+	toDelete := diff.ToDelete
 
 	if len(toDelete) > 0 {
 		if err := c.deleteAcls(toDelete); err != nil {
@@ -111,12 +104,28 @@ func (c *ClusterAdmin) SetKafkaAcls(kafkaAcls KafkaACLs) error {
 	return nil
 }
 
+// ACLDiff holds the diff in sarama form
 type ACLDiff struct {
+	ToCreate []sarama.ResourceAcls
+	ToDelete []sarama.ResourceAcls
+}
+
+// ACLDiffTransformed holds the diff in transformed, franz native form
+type ACLDiffTransformed struct {
 	ToCreate KafkaACLs `json:"to_create" yaml:"to_create"`
 	ToDelete KafkaACLs `json:"to_delete" yaml:"to_delete"`
 }
 
-func (c *ClusterAdmin) SetKafkaACLsDryRun(kafkaAcls KafkaACLs) (ACLDiff, error) {
+// Transform transforms from sarama to franz native form.
+func (a ACLDiff) Transform() ACLDiffTransformed {
+	return ACLDiffTransformed{
+		ToCreate: saramaToKafkaResources(a.ToCreate),
+		ToDelete: saramaToKafkaResources(a.ToDelete),
+	}
+}
+
+// GetACLsDiff returns a diff between the passed in ACLs and the current configured ACLs
+func (c *ClusterAdmin) GetACLsDiff(kafkaAcls KafkaACLs) (ACLDiff, error) {
 	resAclsExisting, err := c.getAcls()
 	if err != nil {
 		return ACLDiff{}, errors.Wrap(err, "failed to retrieve the existing ACLs")
@@ -126,8 +135,8 @@ func (c *ClusterAdmin) SetKafkaACLsDryRun(kafkaAcls KafkaACLs) (ACLDiff, error) 
 	toCreate, toDelete := diffResourcesACLs(resAclsNew, resAclsExisting)
 
 	return ACLDiff{
-		ToCreate: saramaToKafkaResources(toCreate),
-		ToDelete: saramaToKafkaResources(toDelete),
+		ToCreate: toCreate,
+		ToDelete: toDelete,
 	}, nil
 }
 
