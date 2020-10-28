@@ -3,10 +3,7 @@ package franz
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io"
 	"io/ioutil"
-	"log/syslog"
-	"os"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -15,12 +12,6 @@ import (
 
 func createLogger(verbose bool) (*logrus.Logger, error) {
 	log := logrus.New()
-	sysWriter, err := syslog.New(syslog.LOG_INFO, "Franz")
-	if err != nil {
-		return nil, err
-	}
-
-	log.Out = io.MultiWriter(os.Stderr, sysWriter)
 
 	log.Level = logrus.ErrorLevel
 	if verbose {
