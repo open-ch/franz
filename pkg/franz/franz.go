@@ -98,6 +98,10 @@ func (f *Franz) Registry() Registry {
 	return f.registry
 }
 
+func (f *Franz) Codec() avroCodec {
+	return *f.codec
+}
+
 func (f *Franz) getClusterAdmin() (*ClusterAdmin, error) {
 	if f.clusterAdmin == nil {
 		clusterAdmin, err := newClusterAdmin(f.client, f.log)

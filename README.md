@@ -80,6 +80,9 @@ this project:
 - [Huu-An Cao](https://github.com/Huuancao)
 - [Anastasios Zouzias](https://github.com/zouzias)
 - [Florian Lehner](https://github.com/florianl)
+- [Julien Perrochet](https://github.com/Shastick)
+- [Elvin Stephan](https://github.com/elwin)
+- [Derrick Oswald](https://github.com/derrickoswald)
 
 ## License
 Please see [LICENSE](LICENSE).

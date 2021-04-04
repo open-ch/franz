@@ -12,7 +12,10 @@ import (
 )
 
 func init() {
-	var key string
+	var (
+		key string
+		encode string
+	)
 
 	var produceCmd = &cobra.Command{
 		Use:   "produce [topic]",
@@ -30,6 +33,15 @@ Press Ctrl+D to exit.`,
 				}
 				defer producer.Close()
 
+				var schemaID uint32 = 0
+				if "" != encode {
+					subjects, err := f.Registry().SchemaBySubject(encode)
+					if err != nil {
+						return "", err
+					}
+					schemaID = uint32(subjects.ID)
+				}
+
 				reader := bufio.NewReader(os.Stdin)
 				for {
 					line, err := reader.ReadString('\n')
@@ -41,8 +53,19 @@ Press Ctrl+D to exit.`,
 
 					line = strings.TrimSuffix(line, "\n")
 
-					if err := producer.SendMessage(topic, line, key); err != nil {
-						return "", err
+					if "" != encode {
+						var codec = f.Codec()
+						encoded, err := codec.Encode([]byte(line), schemaID)
+						if err != nil {
+							return "", err
+						}
+						if err := producer.SendMessageBytes(topic, encoded, key); err != nil {
+							return "", err
+						}
+					} else {
+						if err := producer.SendMessage(topic, line, key); err != nil {
+							return "", err
+						}
 					}
 				}
 			})
@@ -50,6 +73,7 @@ Press Ctrl+D to exit.`,
 	}
 
 	produceCmd.Flags().StringVarP(&key, "key", "k", "", "Specifies the key that should be used")
+	produceCmd.Flags().StringVarP(&encode, "encode", "e", "", "Avro encoding schema name")
 
 	RootCmd.AddCommand(produceCmd)
 }
