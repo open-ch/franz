@@ -33,8 +33,8 @@ Press Ctrl+D to exit.`,
 				}
 				defer producer.Close()
 
-				var schemaID uint32 = 0
-				if "" != encode {
+				var schemaID uint32
+				if encode != "" {
 					subjects, err := f.Registry().SchemaBySubject(encode)
 					if err != nil {
 						return "", err
@@ -53,13 +53,8 @@ Press Ctrl+D to exit.`,
 
 					line = strings.TrimSuffix(line, "\n")
 
-					if "" != encode {
-						var codec = f.Codec()
-						encoded, err := codec.Encode([]byte(line), schemaID)
-						if err != nil {
-							return "", err
-						}
-						if err := producer.SendMessageBytes(topic, encoded, key); err != nil {
+					if encode != "" {
+						if err := producer.SendMessageEncoded(topic, line, key, schemaID); err != nil {
 							return "", err
 						}
 					} else {

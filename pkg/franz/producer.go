@@ -6,6 +6,7 @@ import (
 
 type Producer struct {
 	client sarama.SyncProducer
+	codec *avroCodec
 }
 
 func (p *Producer) SendMessage(topic, msg, key string) error {
@@ -18,11 +19,15 @@ func (p *Producer) SendMessage(topic, msg, key string) error {
 	return err
 }
 
-func (p *Producer) SendMessageBytes(topic string, msg []byte, key string) error {
-	_, _, err := p.client.SendMessage(&sarama.ProducerMessage{
+func (p *Producer) SendMessageEncoded(topic, msg, key string, schemaID uint32) error {
+	encoded, err := p.codec.Encode([]byte(msg), schemaID)
+	if err != nil {
+		return err
+	}
+	_, _, err = p.client.SendMessage(&sarama.ProducerMessage{
 		Topic: topic,
 		Key:   sarama.StringEncoder(key),
-		Value: sarama.ByteEncoder(msg),
+		Value: sarama.ByteEncoder(encoded),
 	})
 
 	return err
@@ -38,5 +43,5 @@ func (f *Franz) NewProducer() (*Producer, error) {
 		return nil, err
 	}
 
-	return &Producer{client: producer}, nil
+	return &Producer{client: producer, codec: f.codec}, nil
 }

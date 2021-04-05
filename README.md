@@ -81,7 +81,7 @@ this project:
 - [Anastasios Zouzias](https://github.com/zouzias)
 - [Florian Lehner](https://github.com/florianl)
 - [Julien Perrochet](https://github.com/Shastick)
-- [Elvin Stephan](https://github.com/elwin)
+- [Elwin Stephan](https://github.com/elwin)
 - [Derrick Oswald](https://github.com/derrickoswald)
 
 ## License
