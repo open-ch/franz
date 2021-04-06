@@ -19,6 +19,7 @@ func (p *Producer) SendMessage(topic, msg, key string) error {
 	return err
 }
 
+// SendMessageEncoded encodes and sends the JSON format msg with Avro serialization
 func (p *Producer) SendMessageEncoded(topic, msg, key string, schemaID uint32) error {
 	encoded, err := p.codec.Encode([]byte(msg), schemaID)
 	if err != nil {
