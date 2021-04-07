@@ -71,6 +71,29 @@ $ franz consume notifications.users --follow
 ...
 ```
 
+### Produce Avro Serialized Messages
+
+Find the name of the schema that corresponds to the topic you wish to publish to.
+By default this is the topic name with a '-value' suffix if it wasn't specified by the Serde.
+
+You can check the schema name by listing the schemas in the registry:
+```console
+$ franz registry list
+[
+  "users-value",
+  "pageviews-value",
+  ...
+]
+```
+As with the JSON String serialized produce command, start franz reading from stdin
+by specifying the topic but also specify the schema name with the --encode option
+Then on subsequent lines submit the JSON equivalent of the messages:
+```console
+$ franz produce pageviews --encode pageviews-value
+{"viewtime": 248888, "userid": "User_99", "pageid": "Page_99"}
+...
+```
+
 ## Contributors
 Due to a migration of the codebase, some authors might not show up in the git history even though they contributed to
 this project:
@@ -80,6 +103,9 @@ this project:
 - [Huu-An Cao](https://github.com/Huuancao)
 - [Anastasios Zouzias](https://github.com/zouzias)
 - [Florian Lehner](https://github.com/florianl)
+- [Julien Perrochet](https://github.com/Shastick)
+- [Elwin Stephan](https://github.com/elwin)
+- [Derrick Oswald](https://github.com/derrickoswald)
 
 ## License
 Please see [LICENSE](LICENSE).
