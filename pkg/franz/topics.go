@@ -180,7 +180,7 @@ func diffTopics(topicsNew, topicsExisting []Topic) (toCreate, toDelete []Topic, 
 }
 
 // diffTopicsConfig compares the configuration of two topics
-// and returns the configs that need to be changed in the second topic to be the same as the first
+// and returns the new configs if sth need to be changed in the second topic to be the same as the first
 func diffTopicsConfig(newConfig, oldConfig Topic) (AlteredConfigs, bool) {
 	alteredConf := AlteredConfigs{}
 	alteredConf.TopicName = newConfig.Name
@@ -188,9 +188,10 @@ func diffTopicsConfig(newConfig, oldConfig Topic) (AlteredConfigs, bool) {
 	altered := false
 	for i, param := range newConfig.Configs {
 		oldValue, exists := getParamFromName(oldConfig, param.Name)
-		// don't change the config value if it is the same
+		// copy all the new values to the altered, as Sarama applies the whole list of configs, it will be used only, if sth is changed.
+		alteredConf.Configs[param.Name] = &newConfig.Configs[i].Value
+		// don't make any change if the config value is the same
 		if (exists && param.Value != *oldValue) || !exists {
-			alteredConf.Configs[param.Name] = &newConfig.Configs[i].Value
 			altered = true
 		}
 	}
