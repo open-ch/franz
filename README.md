@@ -1,6 +1,5 @@
 # franz
 
-
 Your Swiss-Army Knife tool for interacting with Kafka.
 
 `franz` provides you various helper tools to work with and debug Kafka such as consuming or producing messages and
