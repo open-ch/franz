@@ -1,6 +1,6 @@
 module github.com/open-ch/franz
 
-go 1.18
+go 1.21
 
 require (
 	github.com/Shopify/sarama v1.37.2
