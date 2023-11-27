@@ -27,6 +27,7 @@ var RootCmd = &cobra.Command{
 
 franz provides you various helper tools to work with and debug Kafka
 such as consuming or producing messages and managing topics or ACLs.`,
+	SilenceUsage: true,
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
