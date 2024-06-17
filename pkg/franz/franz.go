@@ -3,7 +3,7 @@ package franz
 import (
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

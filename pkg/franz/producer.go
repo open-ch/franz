@@ -1,12 +1,12 @@
 package franz
 
 import (
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 )
 
 type Producer struct {
 	client sarama.SyncProducer
-	codec *avroCodec
+	codec  *avroCodec
 }
 
 func (p *Producer) SendMessage(topic, msg, key string) error {

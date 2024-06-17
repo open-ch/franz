@@ -7,7 +7,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 )
 
 type Result struct {

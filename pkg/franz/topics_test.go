@@ -3,7 +3,7 @@ package franz
 import (
 	"testing"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/stretchr/testify/require"
 )
 
@@ -66,28 +66,28 @@ func TestDiffTopicsConfigDefaultConfig(t *testing.T) {
 }
 
 func TestDiffTopicsConfigAddConfig(t *testing.T) {
-    existingTopics := []Topic{{Name: "test", Configs: []sarama.ConfigEntry{{Name: "log_compaction", Value: "true"}}}}
-    newTopics := []Topic{{Name: "test", Configs: []sarama.ConfigEntry{{Name: "log_compaction", Value: "true"}, {Name: "log.retention.ms", Value: "200"}}}}
+	existingTopics := []Topic{{Name: "test", Configs: []sarama.ConfigEntry{{Name: "log_compaction", Value: "true"}}}}
+	newTopics := []Topic{{Name: "test", Configs: []sarama.ConfigEntry{{Name: "log_compaction", Value: "true"}, {Name: "log.retention.ms", Value: "200"}}}}
 
-    toCreate, toDelete, toAlter := diffTopics(newTopics, existingTopics)
+	toCreate, toDelete, toAlter := diffTopics(newTopics, existingTopics)
 
-    require.Len(t, toCreate, 0)
-    require.Len(t, toDelete, 0)
-    require.Len(t, toAlter, 1)
-    require.Equal(t, toAlter[0].TopicName, "test")
-    require.Len(t, toAlter[0].Configs, 2)
-    require.Equal(t, *toAlter[0].Configs["log_compaction"], "true")
-    require.Equal(t, *toAlter[0].Configs["log.retention.ms"], "200")
+	require.Len(t, toCreate, 0)
+	require.Len(t, toDelete, 0)
+	require.Len(t, toAlter, 1)
+	require.Equal(t, toAlter[0].TopicName, "test")
+	require.Len(t, toAlter[0].Configs, 2)
+	require.Equal(t, *toAlter[0].Configs["log_compaction"], "true")
+	require.Equal(t, *toAlter[0].Configs["log.retention.ms"], "200")
 
 }
 
 func TestDiffTopicsConfigSameConfig(t *testing.T) {
-    existingTopics := []Topic{{Name: "test", Configs: []sarama.ConfigEntry{{Name: "log_compaction", Value: "true"}, {Name: "log.retention.ms", Value: "200"}}}}
-    newTopics := []Topic{{Name: "test", Configs: []sarama.ConfigEntry{{Name: "log_compaction", Value: "true"}, {Name: "log.retention.ms", Value: "200"}}}}
+	existingTopics := []Topic{{Name: "test", Configs: []sarama.ConfigEntry{{Name: "log_compaction", Value: "true"}, {Name: "log.retention.ms", Value: "200"}}}}
+	newTopics := []Topic{{Name: "test", Configs: []sarama.ConfigEntry{{Name: "log_compaction", Value: "true"}, {Name: "log.retention.ms", Value: "200"}}}}
 
-    toCreate, toDelete, toAlter := diffTopics(newTopics, existingTopics)
+	toCreate, toDelete, toAlter := diffTopics(newTopics, existingTopics)
 
-    require.Len(t, toCreate, 0)
-    require.Len(t, toDelete, 0)
-    require.Len(t, toAlter, 0)
+	require.Len(t, toCreate, 0)
+	require.Len(t, toDelete, 0)
+	require.Len(t, toAlter, 0)
 }

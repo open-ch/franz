@@ -3,7 +3,7 @@ module github.com/open-ch/franz
 go 1.22
 
 require (
-	github.com/Shopify/sarama v1.38.1
+	github.com/IBM/sarama v1.40.1
 	github.com/google/go-cmp v0.6.0
 	github.com/landoop/schema-registry v0.0.0-20190327143759-50a5701c1891
 	github.com/linkedin/goavro/v2 v2.12.0
