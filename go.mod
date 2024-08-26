@@ -36,7 +36,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c // indirect
 	github.com/pelletier/go-toml/v2 v2.2.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
@@ -54,7 +54,8 @@ require (
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
