@@ -227,9 +227,10 @@ func permissionName(code sarama.AclPermissionType) (name string) {
 }
 
 var resourceCode = map[string]sarama.AclResourceType{
-	"Topic":   sarama.AclResourceTopic,
-	"Cluster": sarama.AclResourceCluster,
-	"Group":   sarama.AclResourceGroup,
+	"Topic":           sarama.AclResourceTopic,
+	"Cluster":         sarama.AclResourceCluster,
+	"Group":           sarama.AclResourceGroup,
+	"TransactionalID": sarama.AclResourceTransactionalID,
 }
 
 func resourceName(code sarama.AclResourceType) (name string, ok bool) {
@@ -259,9 +260,10 @@ func resourcePatternTypeName(typ sarama.AclResourcePatternType) (name string) {
 }
 
 type KafkaACLs struct {
-	Cluster       []ACLs
-	ConsumerGroup []ACLs
-	Topic         []ACLs
+	Cluster         []ACLs
+	ConsumerGroup   []ACLs
+	Topic           []ACLs
+	TransactionalID []ACLs
 }
 
 // ACLs represents a versioned set of access control lists for a kafka resource.
@@ -286,12 +288,13 @@ func kafkaToSaramaResources(kafkaACLs KafkaACLs) []sarama.ResourceAcls {
 	saramaContainer = append(saramaContainer, toSaramaResourcesACLs(kafkaACLs.Cluster, "Cluster")...)
 	saramaContainer = append(saramaContainer, toSaramaResourcesACLs(kafkaACLs.ConsumerGroup, "Group")...)
 	saramaContainer = append(saramaContainer, toSaramaResourcesACLs(kafkaACLs.Topic, "Topic")...)
+	saramaContainer = append(saramaContainer, toSaramaResourcesACLs(kafkaACLs.TransactionalID, "TransactionalID")...)
 
 	return saramaContainer
 }
 
 func saramaToKafkaResources(saramaContainer []sarama.ResourceAcls) KafkaACLs {
-	var cluster, group, topic []ACLs
+	var cluster, group, topic, transactionalID []ACLs
 	for _, resourceAcls := range saramaContainer {
 		resourceType := resourceAcls.ResourceType
 		acls := saramaToKafkaAcls(resourceAcls)
@@ -308,13 +311,16 @@ func saramaToKafkaResources(saramaContainer []sarama.ResourceAcls) KafkaACLs {
 			group = append(group, acls)
 		} else if resourceType == sarama.AclResourceTopic {
 			topic = append(topic, acls)
+		} else if resourceType == sarama.AclResourceTransactionalID {
+			transactionalID = append(transactionalID, acls)
 		}
 	}
 
 	return KafkaACLs{
-		Cluster:       cluster,
-		ConsumerGroup: group,
-		Topic:         topic,
+		Cluster:         cluster,
+		ConsumerGroup:   group,
+		Topic:           topic,
+		TransactionalID: transactionalID,
 	}
 }
 

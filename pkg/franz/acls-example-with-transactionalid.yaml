@@ -1,0 +1,45 @@
+# Example ACL configuration file with TransactionalID support
+# This demonstrates how to configure ACLs for all resource types including TransactionalID
+
+cluster: []
+
+# Consumer Groups
+consumergroup:
+- name: schema-registry
+  resourcePatternType: Literal
+  acl:
+  - host: "*"
+    operation: Read
+    action: Allow
+    principal: "User:CN=osdp-schema-registry-client,OU=Dev+OU=osdp-schema-registry,O=Open Systems AG,L=Zurich,C=CH"
+
+# Topics
+topic:
+- name: otel.ztna.activity
+  resourcePatternType: Literal
+  acl:
+  - host: "*"
+    operation: Describe
+    action: Allow
+    principal: "User:*"
+  - host: "*"
+    operation: DescribeConfigs
+    action: Allow
+    principal: "User:*"
+  - host: "*"
+    operation: Write
+    action: Allow
+    principal: "User:*"
+
+transactionalid:
+- name: json2avro-app-sessiondb-transform
+  resourcePatternType: Prefixed
+  acl:
+  - host: "*"
+    operation: Write
+    action: Allow
+    principal: "User:CN=json2avro-app-sessiondb-transform,OU=Dev+OU=osdp-pipelines,O=Open Systems AG,L=Zurich,C=CH"
+  - host: "*"
+    operation: Describe
+    action: Allow
+    principal: "User:CN=json2avro-app-sessiondb-transform,OU=Dev+OU=osdp-pipelines,O=Open Systems AG,L=Zurich,C=CH"
