@@ -38,10 +38,10 @@ func getFranzConfig() franz.Config {
 }
 
 // execute does several things:
-// 1. creates new franz instance
-// 2. executes the passed in function
-// 3. on success, prints the return value to the console,
-//    otherwise it just returns the error
+//  1. creates new franz instance
+//  2. executes the passed in function
+//  3. on success, prints the return value to the console,
+//     otherwise it just returns the error
 func execute(fun func(ctx context.Context, f *franz.Franz) (string, error)) error {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -103,6 +103,7 @@ func decode(path string, x interface{}) error {
 		return errors.New("no file specified")
 	}
 
+	// nosemgrep: go-use-root-open-osag
 	f, err := os.Open(path)
 	if err != nil {
 		return errors.Wrap(err, "failed to read file")
