@@ -1,6 +1,6 @@
 module github.com/open-ch/franz
 
-go 1.25.0
+go 1.24.0
 
 require (
 	github.com/IBM/sarama v1.45.2
