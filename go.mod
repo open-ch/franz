@@ -1,6 +1,6 @@
 module github.com/open-ch/franz
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/IBM/sarama v1.45.2
@@ -51,6 +51,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 )
