@@ -38,12 +38,12 @@ func Test_FormatTable(t *testing.T) {
 	}
 	out, err := FormatTable(in, "")
 	expected := strings.TrimPrefix(`
-+----+-----------+---------+
-| ID |   TITLE   | MESSAGE |
-+----+-----------+---------+
-| 1  | Pumpkin   | Pie     |
-| 2  | Chocolate | Cake    |
-+----+-----------+---------+
+┌────┬───────────┬─────────┐
+│ ID │   TITLE   │ MESSAGE │
+├────┼───────────┼─────────┤
+│ 1  │ Pumpkin   │ Pie     │
+│ 2  │ Chocolate │ Cake    │
+└────┴───────────┴─────────┘
 `, "\n")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, out)

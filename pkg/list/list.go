@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 const tagName = "header"
@@ -23,12 +24,16 @@ const tagName = "header"
 func FormatTable(entries interface{}, caption string) (string, error) {
 	var builder strings.Builder
 	table := tablewriter.NewWriter(&builder)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.Configure(func(config *tablewriter.Config) {
+		config.Row.Alignment.Global = tw.AlignLeft
+	})
 
-	table.SetHeader(getHeaderNames(entries))
-	table.AppendBulk(getRows(entries))
+	table.Header(getHeaderNames(entries))
+	if err := table.Bulk(getRows(entries)); err != nil {
+		return "", err
+	}
 	if caption != "" {
-		table.SetCaption(true, caption)
+		table.Caption(tw.Caption{Text: caption})
 	}
 	table.Render()
 
